@@ -11,7 +11,7 @@ class Player:
 class Bomb:
     def __init__(self, bombRadius, bombTimer, isExploding, location):
         self.bombRadius = bombRadius
-        self.bombTimer = BombTimer
+        self.bombTimer = bombTimer
         self.isExploding = isExploding
         self.location = location
 
