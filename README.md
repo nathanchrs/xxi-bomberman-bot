@@ -17,34 +17,21 @@
 For each round, the bot will try to execute the following goals, starting from the highest priority to the lowest:
 
 ```
-(Precompute)
-- compute next second's kill zones (3D BFS)
-- and also zones if a bomb is placed this turn (duplicate state, 3D BFS)
-- or our bombs are accelerated (duplicate state, 3D BFS)
-- also check which moves are legal (not hitting indesctructible wall, have to have bomb for accelerate, simple checks)
+Calculate danger, blast and target zones.
 
-SURVIVE
-- Escape blast (mark moves that will cause death)
-- If all moves will cause death, undo mark moves; then if dying in next turn, place bomb
+If in danger zone, try find a path to nearest safe location.
+If not possible (trapped), place bomb, then trigger our bombs.
 
-KILL
-- If has bomb and placing bomb will kill enemy, do so
-- If accelerating will cause enemy to get caught in blast, do so
+If an enemy player is in the target zone, trigger our bombs.
 
-GET_POWERUP
-- Try to get powerup, if present. Plan route through destructible walls, but increasing cost by 3x.
-- If has bomb and wall is blocking, place bomb. Else mark as waiting for bomb.
+If placing a bomb will trap enemy, place bomb.
 
-STAY_SAFE
-- Escape blast radius even if it is still safe, just in case the enemy accelerates the timer.
+If next to a destructible wall, place bomb.
 
-TRACK
-- Home in to nearest undestroyed wall or enemy
-- If near wall and has bomb, place bomb. Else mark for waiting for bomb.
+Try to find a path to nearest accessible power up.
 
-WAITING
-- If no immediate action is needed and still waiting for bomb, accelerate
+Try to find a path to the nearest destructible wall.
+If there's none, try to find a path to nearest enemy instead.
 
-ANY
-- Do any available action left, starting from moves, up to staying still if there's really nothing else
+Else do nothing.
 ```

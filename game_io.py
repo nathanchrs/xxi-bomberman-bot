@@ -31,7 +31,7 @@ def read_state(file_path):
 
             elif singleEntity['Bomb']:
                 bomb = singleEntity['Bomb']
-                game_state.bombs.append(Bomb(bomb['BombRadius'], bomb['BombTimer'], bomb['IsExploding'], location_to_tuple(bomb['Location'])))
+                game_state.bombs.append(Bomb(bomb['Owner']["Key"], bomb['BombRadius'], bomb['BombTimer'], bomb['IsExploding'], location_to_tuple(bomb['Location'])))
 
             elif singleEntity['PowerUp']:
                 pUp = singleEntity['PowerUp']

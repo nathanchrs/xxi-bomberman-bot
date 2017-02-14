@@ -8,4 +8,5 @@ class GameState:
         self.map = []
 
     def set_map(self, location, char):
-        self.map[location[0]][location[1]] = char
+    	x, y = location
+        self.map[y][x] = char
