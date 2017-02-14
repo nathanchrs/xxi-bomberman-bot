@@ -18,22 +18,25 @@ For each round, the bot will try to execute the following goals, starting from t
 
 ```
 (Precompute)
-- compute next second's kill zones
-- and also zones if a bomb is placed this turn
-- or our bombs are accelerated
-- also check which moves are legal (not hitting indesctructible wall, have to have bomb for accelerate)
+- compute next second's kill zones (3D BFS)
+- and also zones if a bomb is placed this turn (duplicate state, 3D BFS)
+- or our bombs are accelerated (duplicate state, 3D BFS)
+- also check which moves are legal (not hitting indesctructible wall, have to have bomb for accelerate, simple checks)
 
 SURVIVE
 - Escape blast (mark moves that will cause death)
-- If all moves will cause death, try to home in to nearest enemy; then if dying in next turn, place bomb
+- If all moves will cause death, undo mark moves; then if dying in next turn, place bomb
 
 KILL
 - If has bomb and placing bomb will kill enemy, do so
 - If accelerating will cause enemy to get caught in blast, do so
 
 GET_POWERUP
-- Try to get powerup, if present. Plan route through destructible walls, but increasing cost by 5x.
+- Try to get powerup, if present. Plan route through destructible walls, but increasing cost by 3x.
 - If has bomb and wall is blocking, place bomb. Else mark as waiting for bomb.
+
+STAY_SAFE
+- Escape blast radius even if it is still safe, just in case the enemy accelerates the timer.
 
 TRACK
 - Home in to nearest undestroyed wall or enemy

@@ -1,23 +1,7 @@
-import random
 import sys
 from os import path
-
-def main(output_path, player_key):
-    possible_moves = [
-        {'Command': 'DoNothing', 'CommandCode': -1},
-        {'Command': 'MoveUp', 'CommandCode': 1},
-        {'Command': 'MoveLeft', 'CommandCode': 2},
-        {'Command': 'MoveRight', 'CommandCode': 3},
-        {'Command': 'MoveDown', 'CommandCode': 4},
-        {'Command': 'PlaceBomb', 'CommandCode': 5},
-        {'Command': 'TriggerBomb', 'CommandCode': 6}]
-    move = random.choice(possible_moves)
-    move_file = open(path.join(output_path, 'move.txt'), 'w')
-    move_file.write(str(move['CommandCode']) + '\r\n')
-    move_file.close()
-
-    state_file = open(path.join(output_path, 'state.json'), 'r')
-    state_file.close()
+import game_io
+from greedy_strategy.strategy import GreedyStrategy
 
 if __name__ == '__main__':
     if(len(sys.argv) < 2):
@@ -35,4 +19,14 @@ if __name__ == '__main__':
        print ('Error: Output folder "' + sys.argv[1] + '" does not exist.')
        exit(-1)
 
-    main(output_path, player_key)
+    # Read game state from state file
+    state_file_path = path.join(output_path, '../state.json')
+    game_state = game_io.read_state(state_file_path)
+
+    # Specify strategy and calculate next move
+    strategy = GreedyStrategy()
+    next_move = strategy.calculate_next_move(game_state)
+
+    # Write next move to move file
+    move_file_path = path.join(output_path, 'move.txt')
+    game_io.write_move(move_file_path, next_move)
