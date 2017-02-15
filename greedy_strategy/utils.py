@@ -64,7 +64,8 @@ def shortest_path_backtrack(map, distances, end_location, costs):
 			bt_next_location = shift(bt_location, direction)
 			bt_next_x, bt_next_y = bt_next_location
 			if map_in_range(distances, bt_next_location) \
-			and (distances[bt_next_y][bt_next_x] + costs[map[bt_next_y][bt_next_x]] == distances[bt_y][bt_x]):
+			and costs[map[bt_y][bt_x]] > 0 \
+			and (distances[bt_next_y][bt_next_x] + costs[map[bt_y][bt_x]] == distances[bt_y][bt_x]):
 				bt_location = bt_next_location
 				bt_x, bt_y = bt_location
 				bt_length = distances[bt_next_y][bt_next_x]
@@ -80,7 +81,7 @@ def shortest_path_backtrack(map, distances, end_location, costs):
 					raise Exception('Invalid direction')
 				break
 	bt_path.reverse()
-	print "Shortest path move sequence:", bt_path
+	print "Shortest path move sequence:", bt_path # DEBUG
 	return bt_path
 
 # Dijkstra's shortest path algorithm; returns sequence of moves from start location to nearest end character.
