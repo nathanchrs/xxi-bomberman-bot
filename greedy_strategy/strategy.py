@@ -16,43 +16,68 @@ class GreedyStrategy:
 	# Strategy core; given the current game state, return a move to make.
 	def calculate_next_move(self, game_state):
 		
-		map_width = len(game_state.map[0])
-		map_height = len(game_state.map)
+		current_player = filter(lambda player: player.key == self.player_key, game_state.players)[0]
+		current_x, current_y = current_player.location
 
-		# Calculate danger, blast and target zones
-
+		# Calculate bomb, danger, blast and target zones.
+		# - bomb_zones: map of areas that contains a bomb (marked 'x')
+		# - danger_zones: map of areas that will be hit by blast (marked 'x').
+		# Areas that have a high probability of being blasted in the next turn are marked '*'.
+		# - target_zones: map of areas that will probably be blasted by our own bomb (marked 'x').
+		# Note: blast area calculation does not consider bomb/player blast blocking/triggering effect.
+		bomb_map = copy.deepcopy(game_state.map)
 		danger_zones = copy.deepcopy(game_state.map)
-		blast_zones = copy.deepcopy(game_state.map)
 		target_zones = copy.deepcopy(game_state.map)
 
 		for bomb in game_state.bombs:
 			bomb_x, bomb_y = bomb.location
+			bomb_map[bomb_y][bomb_x] = 'x'
 			bomb_travel = ['up', 'left', 'right', 'down']
 			for i in range(0, bomb.radius+1):
 				for direction in bomb_travel:
 					check_location = utils.shift(bomb.location, direction, i)
 					check_x, check_y = check_location
-					if utils.map_equals(danger_zones, check_location, ['.', 'x']):
+					if utils.map_equals(danger_zones, check_location, ['.', 'x', '*']):
 						danger_zones[check_y][check_x] = 'x'
 						if bomb.timer == 1:
-							blast_zones[check_y][check_x] = 'x'
+							danger_zones[check_y][check_x] = '*'
 						if bomb.owner == self.player_key:
 							target_zones[check_y][check_x] = 'x'
 					elif utils.map_equals(danger_zones, check_location, ['#', '+']):
 						bomb_travel.remove(direction)
 
 		# DEBUG
+		print '--- Bomb map ---'
+		utils.print_map(bomb_map)
 		print '--- Danger zones ---'
 		utils.print_map(danger_zones)
-		print '--- Blast zones ---'
-		utils.print_map(blast_zones)
 		print '--- Target zones ---'
 		utils.print_map(target_zones)
 
-		# If in danger zone, try find a path to nearest safe location.
-		# If not possible (trapped), place bomb, then trigger
+		# If in danger zone, try to find a path to nearest safe location.
+		if utils.map_equals(danger_zones, current_player.location, ['x', '*']):
+			path_to_safety = utils.shortest_path(
+				map = danger_zones,
+				start = current_player.location,
+				end_chars = ['.'],
+				costs = { '#': -1, '*': -1, '+': -1, 'x': 1, '.': 1 }
+			)
+			if path_to_safety is None:
+				print "It's a trap!" # DEBUG
+				if current_player.bomb_bag == 0 or utils.map_equals(bomb_map, current_player.location, ['x']):
+					return Moves.TRIGGER_BOMB
+				else:
+					return Moves.PLACE_BOMB
+			else:
+				print 'Trying to escape to a safe place...' # DEBUG
+				return path_to_safety[0]
 		
-		# If an enemy player is in the target zone, trigger our bombs
+		# If an enemy player is in the target zone, trigger our bombs - around 50% probability of a kill
+		for player in game_state.players:
+			if (player.key != current_player.key):
+				if utils.map_equals(bomb_map, player.location, ['x']):
+					print 'Enemy ' + player.key + ' is probably in target zone, triggering bombs...' # DEBUG
+					return Moves.TRIGGER_BOMB
 		
 		# If placing a bomb will trap enemy, place bomb
 		
@@ -61,7 +86,9 @@ class GreedyStrategy:
 		# Try to find a path to nearest accessible power up.
 		
 		# Try to find a path to the nearest destructible wall.
-		# If there's none, try to find a path to nearest enemy instead.
+
+		# Try to find a path to the nearest enemy.
 
 		# Don't know what else to do
+		print "Nothing else to do." # DEBUG
 		return Moves.DO_NOTHING
