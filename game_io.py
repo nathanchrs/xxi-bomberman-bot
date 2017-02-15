@@ -29,11 +29,11 @@ def read_state(file_path):
                     wall = singleEntity['Entity']
                     game_state.walls.append(Wall(wall['$type'], location_to_tuple(wall['Location'])))
 
-            elif singleEntity['Bomb']:
+            if singleEntity['Bomb']:
                 bomb = singleEntity['Bomb']
                 game_state.bombs.append(Bomb(bomb['Owner']["Key"], bomb['BombRadius'], bomb['BombTimer'], bomb['IsExploding'], location_to_tuple(bomb['Location'])))
 
-            elif singleEntity['PowerUp']:
+            if singleEntity['PowerUp']:
                 pUp = singleEntity['PowerUp']
                 game_state.power_ups.append(PowerUp(pUp['$type'], location_to_tuple(pUp['Location'])))
 
