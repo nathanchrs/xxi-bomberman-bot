@@ -1,5 +1,7 @@
 import Queue
+import copy
 from entities.moves import Moves
+from entities.bomb import Bomb
 
 def map_in_range(map, location):
 	x, y = location
@@ -105,9 +107,98 @@ def shortest_path(map, start, end_chars, costs):
 			next_location = shift(current_location, direction)
 			next_x, next_y = next_location
 			if map_in_range(map, next_location) and (costs[map[next_y][next_x]] >= 0):
-				print "Finding shortest path: now at", current_location, ", going", direction, "to", next_location # DEBUG
+				# print "Finding shortest path: now at", current_location, ", going", direction, "to", next_location # DEBUG
 				if (path_length + costs[map[next_y][next_x]]) < distances[next_y][next_x]:
 					distances[next_y][next_x] = path_length + costs[map[next_y][next_x]]
 					pq.put((distances[next_y][next_x], next_location))
 
 	return None
+
+def calculate_danger_zones(game_state):
+	danger_zones = copy.deepcopy(game_state.map)
+
+	# Mark danger_zone blast zone with 'x'
+	for bomb in game_state.bombs:
+		bomb_x, bomb_y = bomb.location
+		danger_zones[bomb_y][bomb_x] = 'b'
+		bomb_travel = ['up', 'left', 'right', 'down']
+		for i in range(1, bomb.radius+1):
+			remove_direction = []
+			for direction in bomb_travel:
+				check_location = shift(bomb.location, direction, i)
+				check_x, check_y = check_location
+				if map_equals(danger_zones, check_location, ['.']):
+					if bomb.timer > 2:
+						danger_zones[check_y][check_x] = 'x'
+				elif map_equals(danger_zones, check_location, ['#', '+']):
+					remove_direction.append(direction)
+			for direction in remove_direction:
+				bomb_travel.remove(direction)
+
+	# Mark danger_zones with '*' for bombs with timer <= 2
+	for bomb in game_state.bombs:
+		bomb_x, bomb_y = bomb.location
+		danger_zones[bomb_y][bomb_x] = 'b'
+		bomb_travel = ['up', 'left', 'right', 'down']
+		for i in range(1, bomb.radius+1):
+			remove_direction = []
+			for direction in bomb_travel:
+				check_location = shift(bomb.location, direction, i)
+				check_x, check_y = check_location
+				if map_equals(danger_zones, check_location, ['.', 'x']):
+					if bomb.timer <= 2:
+						danger_zones[check_y][check_x] = '*'
+				elif map_equals(danger_zones, check_location, ['#', '+']):
+					remove_direction.append(direction)
+			for direction in remove_direction:
+				bomb_travel.remove(direction)
+
+	# Mark enemy players on danger_zones map
+	for player in game_state.players:
+		if player.key != game_state.current_player.key:
+			enemy_x, enemy_y = player.location
+			if map_equals(danger_zones, player.location, ['.', 'x']):
+				danger_zones[enemy_y][enemy_x] = 'e'
+
+	return danger_zones
+
+def calculate_target_zones(game_state):
+	target_zones = copy.deepcopy(game_state.map)	
+
+	# Mark target_zones with 'x' for our bombs
+	for bomb in game_state.bombs:
+		bomb_x, bomb_y = bomb.location
+		bomb_travel = ['up', 'left', 'right', 'down']
+		for i in range(1, bomb.radius+1):
+			remove_direction = []
+			for direction in bomb_travel:
+				check_location = shift(bomb.location, direction, i)
+				check_x, check_y = check_location
+				if map_equals(target_zones, check_location, ['.']):
+					if bomb.owner == game_state.current_player.key:
+						target_zones[check_y][check_x] = 'x'
+				elif map_equals(target_zones, check_location, ['#', '+']):
+					remove_direction.append(direction)
+			for direction in remove_direction:
+				bomb_travel.remove(direction)
+
+	return target_zones
+
+def can_escape_after_bomb_placed(game_state, escape_from_location):
+	placed_bomb_game_state = copy.deepcopy(game_state)
+	cp = placed_bomb_game_state.current_player
+	placed_bomb_game_state.bombs.append(Bomb(cp.key, cp.bomb_radius, min(cp.bomb_bag*3 + 1, 10), False, cp.location))
+	placed_bomb_map = calculate_danger_zones(placed_bomb_game_state)
+
+	path_to_safety = shortest_path(
+		map = placed_bomb_map,
+		start = escape_from_location,
+		end_chars = ['.'],
+		costs = { '#': -1, '*': -1, 'b': -1, 'e': -1, '+': -1, 'x': 10, '.': 1 }
+	)
+	if path_to_safety is None:
+		return False
+	elif len(path_to_safety) > 3: # Escape is too far away, probably won't make it
+		return False
+	else:
+		return True

@@ -2,6 +2,7 @@ class GameState:
     def __init__(self):
         self.round = 0
         self.players = []
+        self.current_player = {}
         self.walls = []
         self.bombs = []
         self.power_ups = []

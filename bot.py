@@ -21,10 +21,10 @@ if __name__ == '__main__':
 
     # Read game state from state file
     state_file_path = path.join(output_path, '../state.json')
-    game_state = game_io.read_state(state_file_path)
+    game_state = game_io.read_state(state_file_path, player_key)
 
     # Specify strategy and calculate next move
-    strategy = GreedyStrategy(player_key = player_key)
+    strategy = GreedyStrategy()
     next_move = strategy.calculate_next_move(game_state)
 
     # Write next move to move file

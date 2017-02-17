@@ -13,14 +13,17 @@ class GameIOException(Exception):
 def location_to_tuple(location):
     return (location['X'] - 1, location['Y'] - 1)
 
-def read_state(file_path):
+def read_state(file_path, player_key):
     with open(file_path, 'r') as state_file:
         js = json.load(state_file)
 
     game_state = GameState()
 
     for player in js['RegisteredPlayerEntities']:
-        game_state.players.append(Player(player['Name'], player['Key'], player['Points'], player['Killed'], player['BombBag'], player['BombRadius'], location_to_tuple(player['Location'])))
+        if not player['Killed']:
+            game_state.players.append(Player(player['Name'], player['Key'], player['Points'], player['Killed'], player['BombBag'], player['BombRadius'], location_to_tuple(player['Location'])))
+
+    game_state.current_player = filter(lambda player: player.key == player_key, game_state.players)[0]
 
     for _singleEntity in js['GameBlocks']:
         for singleEntity in _singleEntity:
