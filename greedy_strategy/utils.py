@@ -184,14 +184,9 @@ def calculate_target_zones(game_state):
 
 	return target_zones
 
-def can_escape_after_bomb_placed(game_state, escape_from_location):
-	placed_bomb_game_state = copy.deepcopy(game_state)
-	cp = placed_bomb_game_state.current_player
-	placed_bomb_game_state.bombs.append(Bomb(cp.key, cp.bomb_radius, min(cp.bomb_bag*3 + 1, 10), False, cp.location))
-	placed_bomb_map = calculate_danger_zones(placed_bomb_game_state)
-
+def can_escape(danger_zones, escape_from_location):
 	path_to_safety = shortest_path(
-		map = placed_bomb_map,
+		map = danger_zones,
 		start = escape_from_location,
 		end_chars = ['.'],
 		costs = { '#': -1, '*': -1, 'b': -1, 'e': -1, '+': -1, 'x': 10, '.': 1 }
@@ -202,3 +197,11 @@ def can_escape_after_bomb_placed(game_state, escape_from_location):
 		return False
 	else:
 		return True
+
+def can_escape_after_bomb_placed(game_state, escape_from_location):
+	placed_bomb_game_state = copy.deepcopy(game_state)
+	cp = placed_bomb_game_state.current_player
+	placed_bomb_game_state.bombs.append(Bomb(cp.key, cp.bomb_radius, min(cp.bomb_bag*3 + 1, 10), False, cp.location))
+	placed_bomb_map = calculate_danger_zones(placed_bomb_game_state)
+
+	return can_escape(placed_bomb_map, escape_from_location)
