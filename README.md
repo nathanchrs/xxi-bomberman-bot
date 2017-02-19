@@ -2,7 +2,7 @@
 
 [Bomberman]("https://github.com/EntelectChallenge/2016-Bomberman") game bot using greedy algorithm, written in Python 2.
 
-Created for K-01 IF2250 Strategi Algoritma (Algorithms) class, Teknik Informatika Institut Teknologi Bandung, by:
+Created for K-01 IF2211 Strategi Algoritma (Algorithms) class, Teknik Informatika Institut Teknologi Bandung, by:
 - Jonathan Christopher (13515001)
 - Turfa Auliarachman (13515133)
 - Jordhy Fernando (13515004) 
